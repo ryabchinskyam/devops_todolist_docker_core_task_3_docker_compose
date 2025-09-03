@@ -1,0 +1,45 @@
+version: "3.9"
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: todolist-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: todolist
+      MYSQL_USER: todolist_user
+      MYSQL_PASSWORD: 1234
+    ports:
+      - "3306:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - todolist-net
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: todolist-app
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      DB_NAME: todolist
+      DB_USER: todolist_user
+      DB_PASSWORD: 1234
+      DB_HOST: db
+      DB_PORT: 3306
+    networks:
+      - todolist-net
+
+volumes:
+  db-data:
+
+networks:
+  todolist-net:
